@@ -33,7 +33,7 @@ class Process:
     def getChar(self):
         return self.char
 
-    #retuns needed_frames list
+    #retuns needed_frames
     def getNeededFrames(self):
         return self.needed_frames
 
@@ -55,10 +55,10 @@ class Process:
 
     #Gets the number of times this process will run from now...
     def getRemainingInstances(self):
-        if len(self.needed_frames) == len(self.arrival_times) == len(self.exit_times):
+        if len(self.arrival_times) == len(self.exit_times):
             return len(self.needed_frames)
         else:
-            print "ERROR: (len(needed_frames) == len(arrival_times) == len(exit_times)) == False"
+            print "ERROR: (len(arrival_times) == len(exit_times)) == False"
             return -1
 
     #pops the top of the arrival, exit, frames
