@@ -142,7 +142,8 @@ def startUp():
 
 #call necessary functions to run the simulation
 def runSimulation(quiet, input_file, mode):
-    cPL = cProcessList()
+    cPL = cProcessList("""args go here""")  #Processes waiting
+    ccPL = cProcessList("""args go here""") #Processes running (not currently waiting)  (cCurrentProcessList)
     cM = cMem()
     # ---> work on this
     pass
