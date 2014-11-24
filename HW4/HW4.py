@@ -67,7 +67,7 @@ class Process:
             print "ERROR: Attempting to popTop a done process, shouldn't happen"
             return None
         else:
-            frames = self.needed_frames.pop(0)
+            frames = self.needed_frames
             arrival = self.arrival_times.pop(0)
             exit = self.exit_times.pop(0)
             return arrival, exit, frames
