@@ -80,6 +80,9 @@ class cMem:
 
     #prints this cMem's contents (in rows of 80 max)
     def printCMem(self):
+        global time
+
+        print "Memory at time " + time + ":"
         str = ""
         for i in self._memory:
             str += i
