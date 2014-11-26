@@ -78,12 +78,14 @@ class cMem:
         self._memory = ["#"] * 80 + ["."] * (1600 - 80)
     pass
 
-    #prints this cMem's contents
+    #prints this cMem's contents (in rows of 80 max)
     def printCMem(self):
         str = ""
         for i in self._memory:
             str += i
-        print str
+
+        for j in [str[i:i+80] for i in range(0, len(str), 80)]:
+            print j
 
     #removes all fragmentation from this cMem
     def defrag(self):
