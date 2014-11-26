@@ -87,9 +87,35 @@ class cMem:
 
     #removes all fragmentation from this cMem
     def defrag(self):
+        global time
+
+        print "Performing defragmentation..."
+        
+        had_empty = False #had empty memory yet
+        processes = []
+        for i in self._memory:
+            if i == "#":
+                continue
+            elif i == ".":
+                had_empty = True
+            elif had_empty and not i == ".":
+                processes.append(i)
+
+        count = len(set(processes)) #should be the number of moved processes
+
         self._memory = filter(lambda a: a != ".", self._memory) #removes all "."s
+
+        addcount = 0 #number of readded "."s (empty memory)
         while len(self._memory < 1600): #adds all extra "."s
+            addcount = addcount + 1
             self._memory.append(".")
+
+        print "Relocated " + str(count) + " processes to create a free memory block of " + str(addcount) + " units (" + str((addcount / 1600) * 100) + "% of total memory)."
+        print "Defragmentation completed."
+        print ""
+        print "Memory at time" + str(time) + ":"
+        self.printCMem()
+
         if len(self._memory) > 1600:
             print "ERROR: The defrag has resulted in more than 1600 memory frames, this should NEVER happen"
 
@@ -143,7 +169,7 @@ def startUp():
 #call necessary functions to run the simulation
 def runSimulation(quiet, input_file, mode):
     cPL = cProcessList("""args go here""")  #Processes waiting
-    ccPL = cProcessList("""args go here""") #Processes running (not currently waiting)  (cCurrentProcessList)
+    ccPL = cProcessList("""args go here""") #Processes running (not currently waiting) (cCurrentProcessList)
     cM = cMem()
     # ---> work on this
     pass
