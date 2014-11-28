@@ -6,19 +6,91 @@ import sys
 #global time variable
 time = 0
 
-# ---> Work on this.
 #Process List class
 class cProcessList:
     #Constructor, makes a cProcessList Object
     #Give it the entire input file and it will
     #parse it and make the list of processes
-    def __init__(self, input_file):
-        pass
-        #parse the input_file
-        #save it to a List...
-        #self._list = ...
+    def __init__(self, input_file=None):
+        self._plist = []
+        #if we are moking this cProcessList from the input_file, parse it
+        if not input_file == None:
+            f = open(input_file)
+            num_processes = -1  #this doesn't really matter
 
-    #DON'T ACCESS _list DIRECTLY, use accessors, etc..
+            count = 0
+            for line in f:
+                if count == 0:
+                    num_processes = int(line)
+                    count = count + 1
+                    continue
+                else:
+                    tmp_process_list = line.split()
+                    char = tmp_process_list[0]
+                    frames = int(tmp_process_list[1])
+                    arrivals = []
+                    exits = []
+
+                    kount = 0
+                    arrival = True
+                    for i in tmp_process_list:
+                        if kount < 2:
+                            kount = kount + 1
+                            continue
+                        elif arrival:
+                            arrival = False
+                            arrivals.append(tmp_process_list[kount])
+                        else:
+                            arrival = True
+                            exits.append(tmp_process_list[kount])
+
+                        kount = kount + 1
+
+                self._plist.append(Process(char, arrivals, exits, frames))
+                count = count + 1
+
+    #returns all processes that should arrive now
+    #this also removes them from this cProcessList
+    def getProcessessThatShouldArriveNow(self):
+        global time
+
+        now_processes = []
+        for i in self._plist:
+            if i.getNextArrivalTime() == time:
+                now_processes.append(i)
+        
+        for i in now_processes:
+            self._plist.remove(i)   #i think this works, though it might not
+
+        return now_processes
+
+    #returns all processes that should exit now
+    #this also removes them from this cProcessList
+    def getProcessessThatShouldExitNow(self):
+        global time
+
+        now_processes = []
+        for i in self._plist:
+            if i.getNextExitTime() == time:
+                now_processes.append(i)
+        
+        for i in now_processes:
+            self._plist.remove(i)   #i think this works, though it might not
+
+        return now_processes
+
+    #adds a Process to this cProcessList
+    def addProcess(self, proc):
+        self._plist.append(proc)
+
+    #add a list of Processes to this cProcessList
+    def addListOfProcesses(self, lst):
+        for i in lst:
+            self._plist.append(i)
+
+    #removes a Process from this cProcessList
+    def removeProcess(self, proc):
+        self._plist.remove(proc)
 
 #Process class
 class Process:
@@ -28,6 +100,10 @@ class Process:
         self.needed_frames = needed_frames    #Number of frames needed each time
         self.arrival_times = arrival_times    #Times that the process enters
         self.exit_times = exit_times          #Times that the process exits
+
+    #equality checker
+    def __eq__(self, other):
+        return self.char == other.char
 
     #returns char
     def getChar(self):
@@ -46,6 +122,14 @@ class Process:
     def getNextArrivalTime(self):
         if (getRemainingInstances() >= 1):
             return self.arrival_times[0]
+        else:
+            return -1
+
+    #returns the next exit time
+    #if none exists, return -1
+    def getNextExitTime(self):
+        if (getRemainingInstances() >= 1):
+            return self.exit_times[0]
         else:
             return -1
 
@@ -87,7 +171,7 @@ class cMem:
         for i in self._memory:
             str += i
 
-        for j in [str[i:i+80] for i in range(0, len(str), 80)]:
+        for j in [str[i:i + 80] for i in range(0, len(str), 80)]:
             print j
 
     #removes all fragmentation from this cMem
@@ -124,6 +208,11 @@ class cMem:
         if len(self._memory) > 1600:
             print "ERROR: The defrag has resulted in more than 1600 memory frames, this should NEVER happen"
 
+    #removes a list of processes from this cMem
+    def removeListOfProcesses(self, lst):
+        for i in lst:
+            self.removeProcess(i.getChar())
+
     #removes a given process from this cMem
     def removeProcess(self, process_char):
         for i in self._memory:
@@ -144,6 +233,18 @@ class cMem:
     #num_frames: Number of frames the process needs
     #return True if it worked, False if it didn't
     def addProcess(self, add_method, process_char, num_frames):
+
+        if add_method == "noncontig":
+            pass
+        elif add_method == "first":
+            pass
+        elif add_method == "best":
+            pass
+        elif add_method == "next":
+            pass
+        elif add_method == "worst":
+            pass
+
         return False
         # ---> work on this
 
@@ -173,11 +274,10 @@ def startUp():
 
 #call necessary functions to run the simulation
 def runSimulation(quiet, input_file, mode):
-    cPL = cProcessList("""args go here""")  #Processes waiting
-    ccPL = cProcessList("""args go here""") #Processes running (not currently waiting) (cCurrentProcessList)
+    cPL = cProcessList(input_file)  #Processes waiting
+    ccPL = cProcessList() #Processes running (not currently waiting) (cCurrentProcessList)
     cM = cMem()
     # ---> work on this
-    pass
 
 
 
