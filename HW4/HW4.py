@@ -228,6 +228,21 @@ class cMem:
                 count = count + 1
         return count
 
+        
+    def countSpacesBetweenProcesses(self, num_frames):
+        i=80
+        count = 0
+        empty_index = 0
+        while i<len(self._memory):
+            if self._memory[i]==".":
+                count+=1
+            if count>=num_frames:
+                empty_index = i-count
+                break
+            i+=1
+        return empty_index
+        
+            
     #used to add a process to this cMem
     #add_method: noncontig | first | best | next | worst
     #process_char: Name of process (A-Z)
@@ -240,12 +255,39 @@ class cMem:
 
         if add_method == "noncontig":
             pass
+        
         elif add_method == "first":
             pass
+        
         elif add_method == "best":
             pass
+        
         elif add_method == "next":
-            pass
+            if getNumFreeSpaces>=num_frames:# check to see if there is enough space over all
+                i = self.last_allocated_index + 1
+                if i+num_frames<len(self.memory):#if enough space at end put process there
+                    end = self.last_allocated_index + num_frames#index of the last frame that was added
+                    while i < end:
+                        self._memory[i] = process_char
+                        i+=1
+                    self.last_allocated_index += num_frames#updates the last allocated index
+                else:
+                    if countSpacesBetweenProcesses(num_frames)>79:#sees if there is a space big enough between processes
+                        i=countSpacesBetweenProcesses(num_frames)#sets i equal to the first empty space in memory big enough to store the process
+                        end = i+num_frames
+                        while i < end:#add procees to memory
+                            self._memory[i] = process_char
+                            i+=1
+                    else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
+                        defrag()
+                        i=countSpacesBetweenProcesses(num_frames)
+                        end = i+num_frames
+                        while i < end:
+                            self._memory[i] = process_char
+                        self.last_allocated_index = end - 1
+            else:
+                print"ERROR: Not enough memory for process."
+        
         elif add_method == "worst":
             pass
 
