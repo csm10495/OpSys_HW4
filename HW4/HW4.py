@@ -159,6 +159,7 @@ class Process:
 #Memory structure with 1600 memory frames, first 80 are for the OS
 class cMem:
     def __init__(self):
+        self.last_allocated_index = 79         #index of last allocation for NEXT algorithm
         self._memory = ["#"] * 80 + ["."] * (1600 - 80)
     pass
 
@@ -233,6 +234,9 @@ class cMem:
     #num_frames: Number of frames the process needs
     #return True if it worked, False if it didn't
     def addProcess(self, add_method, process_char, num_frames):
+        # DON'T FORGET TO UPDATE self.last_allocated_index
+        # ALSO, USE IT FOR NEXT
+
 
         if add_method == "noncontig":
             pass
