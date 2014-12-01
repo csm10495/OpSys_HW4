@@ -51,7 +51,7 @@ class cProcessList:
 
     #returns all processes that should arrive now
     #this also removes them from this cProcessList
-    def getProcessessThatShouldArriveNow(self):
+    def getProcessesThatShouldArriveNow(self):
         global time
 
         now_processes = []
@@ -66,7 +66,7 @@ class cProcessList:
 
     #returns all processes that should exit now
     #this also removes them from this cProcessList
-    def getProcessessThatShouldExitNow(self):
+    def getProcessesThatShouldExitNow(self):
         global time
 
         now_processes = []
@@ -91,6 +91,9 @@ class cProcessList:
     #removes a Process from this cProcessList
     def removeProcess(self, proc):
         self._plist.remove(proc)
+        
+    def hasProcesses(self):
+        return len(self._plist) == 0
 
 #Process class
 class Process:
@@ -120,7 +123,7 @@ class Process:
     #returns the next arrival time
     #if none exists, return -1
     def getNextArrivalTime(self):
-        if (getRemainingInstances() >= 1):
+        if (self.getRemainingInstances() >= 1):
             return self.arrival_times[0]
         else:
             return -1
@@ -128,7 +131,7 @@ class Process:
     #returns the next exit time
     #if none exists, return -1
     def getNextExitTime(self):
-        if (getRemainingInstances() >= 1):
+        if (self.getRemainingInstances() >= 1):
             return self.exit_times[0]
         else:
             return -1
@@ -140,21 +143,22 @@ class Process:
     #Gets the number of times this process will run from now...
     def getRemainingInstances(self):
         if len(self.arrival_times) == len(self.exit_times):
-            return len(self.needed_frames)
+            return self.needed_frames
         else:
             print "ERROR: (len(arrival_times) == len(exit_times)) == False"
             return -1
 
     #pops the top of the arrival, exit, frames
-    def popTop(self):
+    def popTop(self, arriving):
         if len(self.arrival_times) <= 0:
             print "ERROR: Attempting to popTop a done process, shouldn't happen"
             return None
-        else:
+        else:             
+            arrival = self.arrival_times.pop(0)    
+            exit = self.exit_times.pop(0)                
             frames = self.needed_frames
-            arrival = self.arrival_times.pop(0)
-            exit = self.exit_times.pop(0)
-            return arrival, exit, frames
+            return arrival, exit, frames #not used yet...
+ 
 
 #Memory structure with 1600 memory frames, first 80 are for the OS
 class cMem:
@@ -320,10 +324,47 @@ def startUp():
 
 #call necessary functions to run the simulation
 def runSimulation(quiet, input_file, mode):
+    global time
+    
     cPL = cProcessList(input_file)  #Processes waiting
     ccPL = cProcessList() #Processes running (not currently waiting) (cCurrentProcessList)
     cM = cMem()
     # ---> work on this
+    
+    remaining = 0
+    
+    # while there are remaining processes to process
+    while cPL.hasProcesses() or ccPL.hasProcesses():
+        
+        #if the user wants to specify the next time slice
+        if not quiet and remaining <= 0:
+            userInput = raw_input("Run for:")
+            remaining = int(userInput)#todo: Error checking here
+            if remaining == 0:
+                break
+            
+        entryList = cPL.getProcessesThatShouldArriveNow()
+        exitList = ccPL.getProcessesThatShouldExitNow()
+        
+        
+        for proc in exitList:
+            proc.popTop()#we no longer need the current start/end time of this process
+            cMem.removeProcess(proc.getChar())        
+        
+        for proc in entryList:
+            cMem.addProcess(mode, proc.getChar(), proc.getNeededFrames())
+        
+        #question: before or after the time has incremented
+        cPL.addListOfProcesses(exitList)#add the processes that just exited to the waiting list
+        
+        #question: before or after the time has incremeted
+        ccPL.addListOfProcesses(entryList)#add the processes that just started to the running list
+        
+          
+        remaining -= 1        
+        time += 1
+        
+    print("Exiting")
 
 
 
