@@ -251,9 +251,8 @@ class cMem:
         return empty_index
         
     def bestFit(self, num_frames):
-        i=80
-        count = 0
-        empty_index = 0
+        
+        
         return empty_index
         
             
