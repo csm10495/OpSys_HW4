@@ -53,10 +53,10 @@ class cProcessList:
     #this also removes them from this cProcessList
     def getProcessesThatShouldArriveNow(self):
         global time
-
+        
         now_processes = []
         for i in self._plist:
-            if i.getNextArrivalTime() == time:
+            if int(i.getNextArrivalTime()) == time:
                 now_processes.append(i)
         
         for i in now_processes:
@@ -71,7 +71,7 @@ class cProcessList:
 
         now_processes = []
         for i in self._plist:
-            if i.getNextExitTime() == time:
+            if int(i.getNextExitTime()) == time:
                 now_processes.append(i)
         
         for i in now_processes:
@@ -86,14 +86,15 @@ class cProcessList:
     #add a list of Processes to this cProcessList
     def addListOfProcesses(self, lst):
         for i in lst:
-            self._plist.append(i)
+            if i.getNextArrivalTime() != -1:
+                self._plist.append(i)
 
     #removes a Process from this cProcessList
     def removeProcess(self, proc):
         self._plist.remove(proc)
         
     def hasProcesses(self):
-        return len(self._plist) == 0
+        return len(self._plist) != 0
 
 #Process class
 class Process:
@@ -123,7 +124,7 @@ class Process:
     #returns the next arrival time
     #if none exists, return -1
     def getNextArrivalTime(self):
-        if (self.getRemainingInstances() >= 1):
+        if (self.getRemainingInstances() >= 1 and len(self.arrival_times) > 0):
             return self.arrival_times[0]
         else:
             return -1
@@ -131,7 +132,7 @@ class Process:
     #returns the next exit time
     #if none exists, return -1
     def getNextExitTime(self):
-        if (self.getRemainingInstances() >= 1):
+        if (self.getRemainingInstances() >= 1 and len(self.exit_times) > 0):
             return self.exit_times[0]
         else:
             return -1
@@ -145,11 +146,10 @@ class Process:
         if len(self.arrival_times) == len(self.exit_times):
             return self.needed_frames
         else:
-            print "ERROR: (len(arrival_times) == len(exit_times)) == False"
             return -1
 
     #pops the top of the arrival, exit, frames
-    def popTop(self, arriving):
+    def popTop(self):
         if len(self.arrival_times) <= 0:
             print "ERROR: Attempting to popTop a done process, shouldn't happen"
             return None
@@ -267,9 +267,10 @@ class cMem:
             pass
         
         elif add_method == "next":
-            if getNumFreeSpaces>=num_frames:# check to see if there is enough space over all
+            print("NEXT")
+            if self.getNumFreeFrames>=num_frames:# check to see if there is enough space over all
                 i = self.last_allocated_index + 1
-                if i+num_frames<len(self.memory):#if enough space at end put process there
+                if i+num_frames<len(self._memory):#if enough space at end put process there
                     end = self.last_allocated_index + num_frames#index of the last frame that was added
                     while i < end:
                         self._memory[i] = process_char
@@ -340,19 +341,24 @@ def runSimulation(quiet, input_file, mode):
         if not quiet and remaining <= 0:
             userInput = raw_input("Run for:")
             remaining = int(userInput)#todo: Error checking here
+            
             if remaining == 0:
-                break
+                break                        
             
         entryList = cPL.getProcessesThatShouldArriveNow()
         exitList = ccPL.getProcessesThatShouldExitNow()
         
+        if len(entryList) != 0:
+            print("Entry found...")
         
         for proc in exitList:
             proc.popTop()#we no longer need the current start/end time of this process
-            cMem.removeProcess(proc.getChar())        
+            print("Removing..." + proc.getChar() + "...at time:" + str(time))
+            cM.removeProcess(proc.getChar())        
         
         for proc in entryList:
-            cMem.addProcess(mode, proc.getChar(), proc.getNeededFrames())
+            print("Adding..." + proc.getChar() + "...at time:" + str(time))
+            cM.addProcess(mode, proc.getChar(), proc.getNeededFrames())
         
         #question: before or after the time has incremented
         cPL.addListOfProcesses(exitList)#add the processes that just exited to the waiting list
@@ -360,7 +366,8 @@ def runSimulation(quiet, input_file, mode):
         #question: before or after the time has incremeted
         ccPL.addListOfProcesses(entryList)#add the processes that just started to the running list
         
-          
+        #print("Time..." + str(time) + "   Remaining..." + str(remaining))
+        
         remaining -= 1        
         time += 1
         
