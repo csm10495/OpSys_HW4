@@ -220,9 +220,9 @@ class cMem:
 
     #removes a given process from this cMem
     def removeProcess(self, process_char):
-        for i in self._memory:
-            if i == process_char:
-                i = "."
+        for i in range(len(self._memory)):
+            if self._memory[i] == process_char:
+                self._memory[i] = "."
 
     #returns the number of empty spaces in this cMem
     def getNumFreeFrames(self):
@@ -417,11 +417,12 @@ def runSimulation(quiet, input_file, mode):
         
         #if the user wants to specify the next time slice
         if not quiet and remaining <= 0:
-            userInput = raw_input("Run for:")
-            remaining = int(userInput)#todo: Error checking here
-            
             #print the current memory state
             cM.printCMem()
+            
+            userInput = raw_input("Run for:")
+            remaining = int(userInput)#todo: Error checking here
+
             
             #if the user enters '0', we exit the program
             if remaining == 0:
