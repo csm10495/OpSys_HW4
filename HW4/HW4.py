@@ -290,7 +290,7 @@ class cMem:
         elif add_method == "next":
             if self.getNumFreeFrames>=num_frames:# check to see if there is enough space over all
                 i = self.last_allocated_index + 1
-                if i+num_frames<len(self.memory):#if enough space at end put process there
+                if i+num_frames<len(self._memory):#if enough space at end put process there
                     end = self.last_allocated_index + num_frames#index of the last frame that was added
                     while i < end:
                         self._memory[i] = process_char
