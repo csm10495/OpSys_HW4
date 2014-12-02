@@ -254,6 +254,8 @@ class cMem:
         while i<len(self._memory):
             if self._memory[i]==".":
                 count+=1
+            else:
+                if count >=
             
             i+=1
         return empty_index
@@ -286,16 +288,16 @@ class cMem:
         #first algorithm
         elif add_method == "first":
             if self.getNumFreeFrames()>=num_frames:
-                if countSpacesBetweenProcesses(num_frames)>79:
-                    i = countSpacesBetweenProcesses(num_frames)
+                if self.countSpacesBetweenProcesses(num_frames)>79:
+                    i = self.countSpacesBetweenProcesses(num_frames)
                     end = i + num_frames
                     while i < end:
                         self._memory[i] = process_char
                         if i > self.last_allocated_index:
                             self.last_allocated_index = i
                 else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
-                    defrag()
-                    i=countSpacesBetweenProcesses(num_frames)
+                    self.defrag()
+                    i=self.countSpacesBetweenProcesses(num_frames)
                     end = i+num_frames
                     while i < end:
                         self._memory[i] = process_char
@@ -307,11 +309,11 @@ class cMem:
         elif add_method == "best":
             if self.getNumFreeFrames()>=num_frames:
                 if countSpacesBetweenProcess(num_frames)>79:
-                    i = countSpacesBetweenProcesses(num_frames)
+                    i = self.countSpacesBetweenProcesses(num_frames)
                     
                 else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
-                    defrag()
-                    i=countSpacesBetweenProcesses(num_frames)
+                    self.defrag()
+                    i=self.countSpacesBetweenProcesses(num_frames)
                     end = i+num_frames
                     while i < end:
                         self._memory[i] = process_char
@@ -330,15 +332,15 @@ class cMem:
                         i+=1
                     self.last_allocated_index += num_frames#updates the last allocated index
                 else:
-                    if countSpacesBetweenProcesses(num_frames)>79:#sees if there is a space big enough between processes
-                        i=countSpacesBetweenProcesses(num_frames)#sets i equal to the first empty space in memory big enough to store the process
+                    if self.countSpacesBetweenProcesses(num_frames)>79:#sees if there is a space big enough between processes
+                        i=self.countSpacesBetweenProcesses(num_frames)#sets i equal to the first empty space in memory big enough to store the process
                         end = i+num_frames
                         while i < end:#add procees to memory
                             self._memory[i] = process_char
                             i+=1
                     else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
-                        defrag()
-                        i=countSpacesBetweenProcesses(num_frames)
+                        self.defrag()
+                        i=self.countSpacesBetweenProcesses(num_frames)
                         end = i+num_frames
                         while i < end:
                             self._memory[i] = process_char
