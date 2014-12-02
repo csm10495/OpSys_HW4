@@ -171,12 +171,12 @@ class cMem:
     def printCMem(self):
         global time
 
-        print "Memory at time " + time + ":"
-        str = ""
+        print "Memory at time " + str(time) + ":"
+        memstr = ""
         for i in self._memory:
-            str += i
+            memstr += i
 
-        for j in [str[i:i + 80] for i in range(0, len(str), 80)]:
+        for j in [memstr[i:i + 80] for i in range(0, len(memstr), 80)]:
             print j
 
     #removes all fragmentation from this cMem
@@ -401,31 +401,37 @@ def runSimulation(quiet, input_file, mode):
             userInput = raw_input("Run for:")
             remaining = int(userInput)#todo: Error checking here
             
+            #print the current memory state
+            cM.printCMem()
+            
+            #if the user enters '0', we exit the program
             if remaining == 0:
                 break                        
             
+        #get the lists of arriving and exiting processes
         entryList = cPL.getProcessesThatShouldArriveNow()
         exitList = ccPL.getProcessesThatShouldExitNow()
         
-        if len(entryList) != 0:
-            print("Entry found...")
-        
+        #process the processes that have just exited [BEFORE arrivals]
         for proc in exitList:
             proc.popTop()#we no longer need the current start/end time of this process
             print("Removing..." + proc.getChar() + "...at time:" + str(time))
             cM.removeProcess(proc.getChar())        
         
+        #process the processes that have just arrived
         for proc in entryList:
             print("Adding..." + proc.getChar() + "...at time:" + str(time))
             cM.addProcess(mode, proc.getChar(), proc.getNeededFrames())
         
         #question: before or after the time has incremented
-        cPL.addListOfProcesses(exitList)#add the processes that just exited to the waiting list
+        #add the processes that just exited to the waiting list
+        cPL.addListOfProcesses(exitList)
         
         #question: before or after the time has incremeted
-        ccPL.addListOfProcesses(entryList)#add the processes that just started to the running list
+        #add the processes that just started to the running list
+        ccPL.addListOfProcesses(entryList)
         
-        #print("Time..." + str(time) + "   Remaining..." + str(remaining))
+        print("Time..." + str(time))
         
         remaining -= 1        
         time += 1
