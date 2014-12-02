@@ -283,7 +283,7 @@ class cMem:
                 count += 1       
                 if count < currentSmallest and count >= num_frames:
                     currentSmallest = count
-                    currentBestIndex = i - count
+                    currentBestIndex = i - count + 1
             #we are not/no longer inside, store and reset the important values
             else:
                 if count == num_frames:
@@ -293,6 +293,34 @@ class cMem:
             
             i += 1
         return currentBestIndex  #nonperfect return
+
+    #returns an index for cMem where it has num_frames available (worst)
+    def getWorstAvailableLocation(self, num_frames):               
+        i = 80
+        inside = False
+        count = 0
+        
+        currentWorstIndex = -1
+        currentLargest = -1
+        while(i < 1600):
+            
+            #we have not found a new "."
+            if not inside and self._memory[i] == ".":
+                inside = True
+                count += 1
+            #we are inside a string of "."s
+            elif inside and self._memory[i] == ".":
+                count += 1       
+                if count > currentLargest and count >= num_frames:
+                    currentLargest = count
+                    currentWorstIndex = i - count + 1
+            #we are not/no longer inside, store and reset the important values
+            else:
+                inside = False
+                count = 0             
+            
+            i += 1
+        return currentWorstIndex  #nonperfect return
         
     def bestFit(self, num_frames):
         
@@ -405,30 +433,25 @@ class cMem:
         
         #worst algorithm
         elif add_method == "worst":
-            done = False
-            defraged = False
-            while not done:
-                i = 1520     #start with going in the extreme worst spot and work down
-                while i > 0 and i >= num_frames:
-                    loc = self.getFirstAvailableLocation(i)
-                    if(loc >= 0):
+            if self.getNumFreeFrames() >= num_frames:
+                i = num_frames
+                loc = self.getWorstAvailableLocation(i)  #definite amount of space
+                if(loc >= 0):
+                    while num_frames != 0:
+                        self._memory[loc] = process_char
+                        num_frames = num_frames - 1
+                        loc = loc + 1
+                else:
+                    self.defrag()
+                    loc = self.getWorstAvailableLocation(i) 
+                    if loc >= 0:
                         while num_frames != 0:
                             self._memory[loc] = process_char
                             num_frames = num_frames - 1
                             loc = loc + 1
-                        done = True
-                        break
-                    i = i - 1
-
-                if done:
-                    break
-
-                if not defraged and not done:
-                    self.defrag()
-                    defraged = True
-                else:
-                    print "ERROR: Not enough memory for process."
-                    sys.exit(0)
+            else:
+                print "ERROR: Not enough memory for process."
+                sys.exit(0)
 
         return False
         # ---> work on this
