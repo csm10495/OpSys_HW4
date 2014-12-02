@@ -1,5 +1,6 @@
 #OpSys Homework 4
-#Charles Machalow and theoretically others
+#Charles Machalow, Colton Wicks (New Guy), Paul Horner
+#"The Braintrust"
 
 import sys
 
@@ -163,7 +164,7 @@ class Process:
 #Memory structure with 1600 memory frames, first 80 are for the OS
 class cMem:
     def __init__(self):
-        self.last_allocated_index = 79         #index of last allocation for NEXT algorithm
+        self.last_allocated_index = 0         #index of last allocation for NEXT algorithm
         self._memory = ["#"] * 80 + ["."] * (1600 - 80)
     pass
 
@@ -241,9 +242,26 @@ class cMem:
         return string_rep.find("." * int(num_frames))
         #returns index on success, else returns -1
 
+    #returns an index for cMem where it has num_frames available (starting at
+    #index)
+    def getNextAvailableLocation(self, num_frames, index):
+        rotated_mem = self._memory
+        rotated_mem = rotated_mem[index:] + rotated_mem[:index]   #rotate (shift) the array
+
+        string_rep = ""
+        for i in rotated_mem:
+            string_rep += i
+
+        loc = string_rep.find("." * int(num_frames)) 
+
+        if loc == -1:
+            return -1
+        else:
+            return loc + index % len(rotated_mem)
+
     #returns an index for cMem where it has exactly num_frames available
     def getFirstAvailableExactLocation(self, num_frames):            
-        #print str(num_frames)   
+        #print str(num_frames)
         i = 80
         inside = False
         count = 0
@@ -271,30 +289,56 @@ class cMem:
         count = 0
         
         currentBestIndex = -1
-        currentSmallest = -1
+        currentSmallest = 1600
         while(i < 1600):
             
             #we have not found a new "."
             if not inside and self._memory[i] == ".":
                 inside = True
-                count = 1
+                count += 1
             #we are inside a string of "."s
             elif inside and self._memory[i] == ".":
                 count += 1       
+                if count < currentSmallest and count >= num_frames:
+                    currentSmallest = count
+                    currentBestIndex = i - count + 1
             #we are not/no longer inside, store and reset the important values
             else:
                 if count == num_frames:
-                    return i - count
-                
-                if count < currentSmallest and count >= num_frames:
-                    currentSmallest = count
-                    currentBestIndex = i - count                
-                
+                    return i - count   #perfect return
                 inside = False
                 count = 0             
             
             i += 1
-        return currentBestIndex
+        return currentBestIndex  #nonperfect return
+
+    #returns an index for cMem where it has num_frames available (worst)
+    def getWorstAvailableLocation(self, num_frames):               
+        i = 80
+        inside = False
+        count = 0
+        
+        currentWorstIndex = -1
+        currentLargest = -1
+        while(i < 1600):
+            
+            #we have not found a new "."
+            if not inside and self._memory[i] == ".":
+                inside = True
+                count += 1
+            #we are inside a string of "."s
+            elif inside and self._memory[i] == ".":
+                count += 1       
+                if count > currentLargest and count >= num_frames:
+                    currentLargest = count
+                    currentWorstIndex = i - count + 1
+            #we are not/no longer inside, store and reset the important values
+            else:
+                inside = False
+                count = 0             
+            
+            i += 1
+        return currentWorstIndex  #nonperfect return
         
     def bestFit(self, num_frames):
         
@@ -306,10 +350,7 @@ class cMem:
     #add_method: noncontig | first | best | next | worst
     #process_char: Name of process (A-Z)
     #num_frames: Number of frames the process needs
-    #return True if it worked, False if it didn't
     def addProcess(self, add_method, process_char, num_frames):
-        # DON'T FORGET TO UPDATE self.last_allocated_index
-        # ALSO, USE IT FOR NEXT
 
         #noncontiguous algorithm
         if add_method == "noncontig":
@@ -354,90 +395,71 @@ class cMem:
         
         #best algorithm
         elif add_method == "best":
-            done = False
-            defraged = False
-            while not done:
+            if self.getNumFreeFrames() >= num_frames:
                 i = num_frames
-                while i <= 1520:
-                    loc = self.getFirstAvailableExactLocation(i)  #definite amount of space
-                #    if loc == -1:
-                #        loc = self.getFirstAvailableLocation(i)
-                    if(loc >= 0):
+                loc = self.getBestAvailableLocation(i)  #definite amount of space
+                if(loc >= 0):
+                    while num_frames != 0:
+                        self._memory[loc] = process_char
+                        num_frames = num_frames - 1
+                        loc = loc + 1
+                else:
+                    self.defrag()
+                    loc = self.getBestAvailableLocation(i) 
+                    if loc >= 0:
                         while num_frames != 0:
                             self._memory[loc] = process_char
                             num_frames = num_frames - 1
                             loc = loc + 1
-                        done = True
-                        break
-                    i = i + 1
-
-                if done:
-                    break
-
-                if not defraged and not done:
-                    self.defrag()
-                    defraged = True
-                else:
-                    print "ERROR: Not enough memory for process."
-                    sys.exit(0)
+            else:
+                print "ERROR: Not enough memory for process."
+                sys.exit(0)
         
         #next algorithm
         elif add_method == "next":
-
-            if self.getNumFreeFrames() >= num_frames:# check to see if there is enough space over all
-
-                i = self.last_allocated_index + 1
-                if i + num_frames < len(self._memory):#if enough space at end put process there
-                    end = self.last_allocated_index + num_frames#index of the last frame that was added
-                    while i < end:
-                        self._memory[i] = process_char
-                        i+=1
-                    self.last_allocated_index += num_frames - 1#updates the last allocated index
+            if self.getNumFreeFrames() >= num_frames:
+                i = num_frames
+                loc = self.getNextAvailableLocation(i, self.last_allocated_index)  #definite amount of space
+                if(loc >= 0):
+                    self.last_allocated_index = loc
+                    while num_frames != 0:
+                        self._memory[loc] = process_char
+                        num_frames = num_frames - 1
+                        loc = loc + 1
                 else:
-                    if self.getFirstAvailableLocation(num_frames) > 79:#sees if there is a space big enough between processes
-                        i = self.getFirstAvailableLocation(num_frames)#sets i equal to the first empty space in memory big enough to store the
-                                                                      #process
-                        end = i + num_frames
-                        while i < end:#add procees to memory
-                            self._memory[i] = process_char
-                            i+=1
-                    else:#if there is enough room but is not contiguous defrag then find the first empty
-                         #space in memory
-                        self.defrag()
-                        i = self.getFirstAvailableLocation(num_frames)
-                        end = i + num_frames
-                        while i < end:
-                            self._memory[i] = process_char
-                        self.last_allocated_index = end - 1
-            else:
-                print"ERROR: Not enough memory for process."
-        
-        #worst algorithm
-        elif add_method == "worst":
-            done = False
-            defraged = False
-            while not done:
-                i = 1520     #start with going in the extreme worst spot and work down
-                while i > 0 and i >= num_frames:
-                    loc = self.getFirstAvailableLocation(i)
-                    if(loc >= 0):
+                    self.defrag()
+                    loc = self.getNextAvailableLocation(i, self.last_allocated_index) 
+                    if loc >= 0:
+                        self.last_allocated_index = loc
                         while num_frames != 0:
                             self._memory[loc] = process_char
                             num_frames = num_frames - 1
                             loc = loc + 1
-                        done = True
-                        break
-                    i = i - 1
+            else:
+                print "ERROR: Not enough memory for process."
+                sys.exit(0)
 
-                if done:
-                    break
-
-                if not defraged and not done:
-                    self.defrag()
-                    defraged = True
+        #worst algorithm
+        elif add_method == "worst":
+            if self.getNumFreeFrames() >= num_frames:
+                i = num_frames
+                loc = self.getWorstAvailableLocation(i)  #definite amount of space
+                if(loc >= 0):
+                    while num_frames != 0:
+                        self._memory[loc] = process_char
+                        num_frames = num_frames - 1
+                        loc = loc + 1
                 else:
-                    print "ERROR: Not enough memory for process."
-                    sys.exit(0)
+                    self.defrag()
+                    loc = self.getWorstAvailableLocation(i) 
+                    if loc >= 0:
+                        while num_frames != 0:
+                            self._memory[loc] = process_char
+                            num_frames = num_frames - 1
+                            loc = loc + 1
+            else:
+                print "ERROR: Not enough memory for process."
+                sys.exit(0)
 
         return False
         # ---> work on this
@@ -485,9 +507,13 @@ def runSimulation(quiet, input_file, mode):
             #print the current memory state
             cM.printCMem()
             
-            userInput = raw_input("Run for:")
-            remaining = int(userInput)#todo: Error checking here
+            userInput = raw_input("Run for: ")
 
+            try:
+                remaining = int(userInput)#todo: Error checking here
+            except ValueError:
+                print "ValueError: Hey ", userInput, " is not an int. I'm running the simulation forward 1."
+                remaining = 1
             
             #if the user enters '0', we exit the program
             if remaining == 0:
@@ -500,12 +526,12 @@ def runSimulation(quiet, input_file, mode):
         #process the processes that have just exited [BEFORE arrivals]
         for proc in exitList:
             proc.popTop()#we no longer need the current start/end time of this process
-            print("Removing..." + proc.getChar() + "...at time:" + str(time))
+            print("Removing..." + proc.getChar() + "...at time: " + str(time))
             cM.removeProcess(proc.getChar())        
         
         #process the processes that have just arrived
         for proc in entryList:
-            print("Adding..." + proc.getChar() + "...at time:" + str(time))
+            print("Adding..." + proc.getChar() + "...at time: " + str(time))
             cM.addProcess(mode, proc.getChar(), proc.getNeededFrames())
         
         #question: before or after the time has incremented
