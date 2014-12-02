@@ -256,18 +256,39 @@ class cMem:
         # DON'T FORGET TO UPDATE self.last_allocated_index
         # ALSO, USE IT FOR NEXT
 
-
+        #noncontiguous algorithm
         if add_method == "noncontig":
-            pass
+            if self.getNumFreeFrames>=num_frames:
+                frames_left = num_frames
+                i = 80
+                while frames_left > 0:
+                    if self._memory[i] == ".":
+                        self._memory[i] = process
+                        frames_left -= 1
+                    i+=1
+            else:
+                print"ERROR: Not enough memory for process."
         
+        #first algorithm
         elif add_method == "first":
-            pass
+            if self.getNumFreeFrames>=num_frames:
+                i = countSpacesBetweenProcesses(num_frames)
+                end = i + num_frames
+                while i < end:
+                    self._memory[i] = process_char
+            else:
+                print"ERROR: Not enough memory for process."
         
+        #best algorithm
         elif add_method == "best":
-            pass
+            if self.getNumFreeFrames>=num_frames:
+                pass
+            else:
+                print"ERROR: Not enough memory for process."
         
+        #next algorithm
         elif add_method == "next":
-            if getNumFreeSpaces>=num_frames:# check to see if there is enough space over all
+            if self.getNumFreeFrames>=num_frames:# check to see if there is enough space over all
                 i = self.last_allocated_index + 1
                 if i+num_frames<len(self.memory):#if enough space at end put process there
                     end = self.last_allocated_index + num_frames#index of the last frame that was added
@@ -292,8 +313,12 @@ class cMem:
             else:
                 print"ERROR: Not enough memory for process."
         
+        #worst algorithm
         elif add_method == "worst":
-            pass
+            if self.getNumFreeFrames>=num_frames:
+                pass
+            else:
+                print"ERROR: Not enough memory for process."
 
         return False
         # ---> work on this
