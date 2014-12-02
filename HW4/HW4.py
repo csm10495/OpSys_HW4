@@ -232,30 +232,18 @@ class cMem:
                 count = count + 1
         return count
 
-        
-    def countSpacesBetweenProcesses(self, num_frames):
-        i=80
-        count = 0
-        empty_index = 0
-        while i<len(self._memory):
-            if self._memory[i]==".":
-                count+=1
-            if count>=num_frames:
-                empty_index = i-count+1
-                break
-            i+=1
-        return empty_index
+    #returns an index for cMem where it has num_frames available
+    def getFirstAvailableLocation(self, num_frames):
+        string_rep = ""
+        for i in self._memory:
+            string_rep += i
+
+        return string_rep.find("." * int(num_frames))
+        #returns index on success, else returns -1
         
     def bestFit(self, num_frames):
-        i=80
-        count = 0
-        empty_index = 0
-        best_fit = 0
-        while i<len(self._memory):
-            if self._memory[i]==".":
-                count+=1
-            
-            i+=1
+        
+        
         return empty_index
         
             
@@ -286,16 +274,16 @@ class cMem:
         #first algorithm
         elif add_method == "first":
             if self.getNumFreeFrames()>=num_frames:
-                if countSpacesBetweenProcesses(num_frames)>79:
-                    i = countSpacesBetweenProcesses(num_frames)
+                if self.getFirstAvailableLocation(num_frames)>79:
+                    i = self.getFirstAvailableLocation(num_frames)
                     end = i + num_frames
                     while i < end:
                         self._memory[i] = process_char
                         if i > self.last_allocated_index:
                             self.last_allocated_index = i
                 else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
-                    defrag()
-                    i=countSpacesBetweenProcesses(num_frames)
+                    self.defrag()
+                    i=self.getFirstAvailableLocation(num_frames)
                     end = i+num_frames
                     while i < end:
                         self._memory[i] = process_char
@@ -305,19 +293,30 @@ class cMem:
         
         #best algorithm
         elif add_method == "best":
-            if self.getNumFreeFrames()>=num_frames:
-                if countSpacesBetweenProcess(num_frames)>79:
-                    i = countSpacesBetweenProcesses(num_frames)
-                    
-                else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
-                    defrag()
-                    i=countSpacesBetweenProcesses(num_frames)
-                    end = i+num_frames
-                    while i < end:
-                        self._memory[i] = process_char
-                    self.last_allocated_index = end - 1
-            else:
-                print"ERROR: Not enough memory for process."
+            done = False
+            defraged = False
+            while not done:
+                i = num_frames     #start with going in the extreme worst spot and work down
+                while i > 0 and i < 1520:
+                    loc = self.getFirstAvailableLocation(i)
+                    if(loc >= 0):
+                        while num_frames != 0:
+                            self._memory[loc] = process_char
+                            num_frames = num_frames - 1
+                            loc = loc + 1
+                        done = True
+                        break
+                    i = i + 1
+
+                if done:
+                    break
+
+                if not defraged and not done:
+                    self.defrag()
+                    defraged = True
+                else:
+                    print "ERROR: Not enough memory for process."
+                    sys.exit(0)
         
         #next algorithm
         elif add_method == "next":
@@ -332,15 +331,15 @@ class cMem:
                         i+=1
                     self.last_allocated_index += num_frames#updates the last allocated index
                 else:
-                    if countSpacesBetweenProcesses(num_frames)>79:#sees if there is a space big enough between processes
-                        i=countSpacesBetweenProcesses(num_frames)#sets i equal to the first empty space in memory big enough to store the process
+                    if self.getFirstAvailableLocation(num_frames)>79:#sees if there is a space big enough between processes
+                        i=self.getFirstAvailableLocation(num_frames)#sets i equal to the first empty space in memory big enough to store the process
                         end = i+num_frames
                         while i < end:#add procees to memory
                             self._memory[i] = process_char
                             i+=1
                     else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
-                        defrag()
-                        i=countSpacesBetweenProcesses(num_frames)
+                        self.defrag()
+                        i=self.getFirstAvailableLocation(num_frames)
                         end = i+num_frames
                         while i < end:
                             self._memory[i] = process_char
@@ -350,10 +349,30 @@ class cMem:
         
         #worst algorithm
         elif add_method == "worst":
-            if self.getNumFreeFrames()>=num_frames:
-                pass
-            else:
-                print"ERROR: Not enough memory for process."
+            done = False
+            defraged = False
+            while not done:
+                i = 1520     #start with going in the extreme worst spot and work down
+                while i > 0 and i >= num_frames:
+                    loc = self.getFirstAvailableLocation(i)
+                    if(loc >= 0):
+                        while num_frames != 0:
+                            self._memory[loc] = process_char
+                            num_frames = num_frames - 1
+                            loc = loc + 1
+                        done = True
+                        break
+                    i = i - 1
+
+                if done:
+                    break
+
+                if not defraged and not done:
+                    self.defrag()
+                    defraged = True
+                else:
+                    print "ERROR: Not enough memory for process."
+                    sys.exit(0)
 
         return False
         # ---> work on this
