@@ -252,6 +252,38 @@ class cMem:
             
             i += 1
         return -1
+    
+    #returns an index for cMem where it has num_frames available
+    def getBestAvailableLocation(self, num_frames):               
+        i = 80
+        inside = False
+        count = 0
+        
+        currentBestIndex = -1
+        currentSmallest = -1
+        while(i < 1600):
+            
+            #we have not found a new "."
+            if not inside and self._memory[i] == ".":
+                inside = True
+                count = 1
+            #we are inside a string of "."s
+            elif inside and self._memory[i] == ".":
+                count += 1       
+            #we are not/no longer inside, store and reset the important values
+            else:
+                if count == num_frames:
+                    return i - count
+                
+                if count < currentSmallest and count >= num_frames:
+                    currentSmallest = count
+                    currentBestIndex = i - count                
+                
+                inside = False
+                count = 0             
+            
+            i += 1
+        return currentBestIndex
         
     def bestFit(self, num_frames):
         
