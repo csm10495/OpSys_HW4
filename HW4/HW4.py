@@ -263,7 +263,7 @@ class cMem:
                 i = 80
                 while frames_left > 0:
                     if self._memory[i] == ".":
-                        self._memory[i] = process
+                        self._memory[i] = process_char
                         frames_left -= 1
                     if i > self.last_allocated_index:
                         self.last_allocated_index = i
