@@ -240,6 +240,8 @@ class cMem:
         while i<len(self._memory):
             if self._memory[i]==".":
                 count+=1
+            else:
+                count = 0
             if count>=num_frames:
                 empty_index = i-count+1
                 break
