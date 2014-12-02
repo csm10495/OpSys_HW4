@@ -233,7 +233,17 @@ class cMem:
         return count
 
     #returns an index for cMem where it has num_frames available
-    def getFirstAvailableLocation(self, num_frames):               
+    def getFirstAvailableLocation(self, num_frames):
+        string_rep = ""
+        for i in self._memory:
+            string_rep += i
+
+        return string_rep.find("." * int(num_frames))
+        #returns index on success, else returns -1
+
+    #returns an index for cMem where it has exactly num_frames available
+    def getFirstAvailableExactLocation(self, num_frames):            
+        #print str(num_frames)   
         i = 80
         inside = False
         count = 0
@@ -251,6 +261,7 @@ class cMem:
                 count = 0             
             
             i += 1
+
         return -1
         
     def bestFit(self, num_frames):
@@ -270,7 +281,7 @@ class cMem:
 
         #noncontiguous algorithm
         if add_method == "noncontig":
-            if self.getNumFreeFrames()>=num_frames:
+            if self.getNumFreeFrames() >= num_frames:
                 frames_left = num_frames
                 i = 80
                 while frames_left > 0:
@@ -284,10 +295,12 @@ class cMem:
         
         #first algorithm
         elif add_method == "first":
-            if self.getNumFreeFrames()>=num_frames:
-                #getFirstAvailableLocation will get the 'first' location in the cMem that can store this many frames contiguously
-                #if we have 5 empty spaces in a row but num_frames is 4 getFirst... will return -1
-                if self.getFirstAvailableLocation(num_frames)>79:        
+            if self.getNumFreeFrames() >= num_frames:
+                #getFirstAvailableLocation will get the 'first' location in the
+                #cMem that can store this many frames contiguously
+                #if we have 5 empty spaces in a row but num_frames is 4
+                #getFirst...  will return -1
+                if self.getFirstAvailableLocation(num_frames) > 79:        
                     i = self.getFirstAvailableLocation(num_frames)
                     end = i + num_frames
                     while i < end:
@@ -295,24 +308,28 @@ class cMem:
                         if i > self.last_allocated_index:
                             self.last_allocated_index = i
                         i+=1
-                else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
+                else:#if there is enough room but is not contiguous defrag then find the first empty
+                     #space in memory
                     self.defrag()
-                    i=self.getFirstAvailableLocation(num_frames)
-                    end = i+num_frames
+                    i = self.getFirstAvailableLocation(num_frames)
+                    end = i + num_frames
                     while i < end:
                         self._memory[i] = process_char
                     self.last_allocated_index = end - 1
             else:
                 print"ERROR: Not enough memory for process."
+                sys.exit(0)
         
         #best algorithm
         elif add_method == "best":
             done = False
             defraged = False
             while not done:
-                i = num_frames     #start with going in the extreme worst spot and work down
-                while i > 0 and i < 1520:
-                    loc = self.getFirstAvailableLocation(i)
+                i = num_frames
+                while i <= 1520:
+                    loc = self.getFirstAvailableExactLocation(i)  #definite amount of space
+                #    if loc == -1:
+                #        loc = self.getFirstAvailableLocation(i)
                     if(loc >= 0):
                         while num_frames != 0:
                             self._memory[loc] = process_char
@@ -335,26 +352,28 @@ class cMem:
         #next algorithm
         elif add_method == "next":
 
-            if self.getNumFreeFrames()>=num_frames:# check to see if there is enough space over all
+            if self.getNumFreeFrames() >= num_frames:# check to see if there is enough space over all
 
                 i = self.last_allocated_index + 1
-                if i+num_frames<len(self._memory):#if enough space at end put process there
+                if i + num_frames < len(self._memory):#if enough space at end put process there
                     end = self.last_allocated_index + num_frames#index of the last frame that was added
                     while i < end:
                         self._memory[i] = process_char
                         i+=1
-                    self.last_allocated_index += num_frames -1#updates the last allocated index
+                    self.last_allocated_index += num_frames - 1#updates the last allocated index
                 else:
-                    if self.getFirstAvailableLocation(num_frames)>79:#sees if there is a space big enough between processes
-                        i=self.getFirstAvailableLocation(num_frames)#sets i equal to the first empty space in memory big enough to store the process
-                        end = i+num_frames
+                    if self.getFirstAvailableLocation(num_frames) > 79:#sees if there is a space big enough between processes
+                        i = self.getFirstAvailableLocation(num_frames)#sets i equal to the first empty space in memory big enough to store the
+                                                                      #process
+                        end = i + num_frames
                         while i < end:#add procees to memory
                             self._memory[i] = process_char
                             i+=1
-                    else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
+                    else:#if there is enough room but is not contiguous defrag then find the first empty
+                         #space in memory
                         self.defrag()
-                        i=self.getFirstAvailableLocation(num_frames)
-                        end = i+num_frames
+                        i = self.getFirstAvailableLocation(num_frames)
+                        end = i + num_frames
                         while i < end:
                             self._memory[i] = process_char
                         self.last_allocated_index = end - 1
