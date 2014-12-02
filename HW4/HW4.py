@@ -237,13 +237,15 @@ class cMem:
         i=80
         count = 0
         empty_index = 0
+        total = 0
         while i<len(self._memory):
             if self._memory[i]==".":
                 count+=1
             else:
+                total = count
                 count = 0
-            if count>=num_frames:
-                empty_index = i-count+1
+            if total>=num_frames:
+                empty_index = i-total+1
                 break
             i+=1
         return empty_index
@@ -252,14 +254,6 @@ class cMem:
         i=80
         count = 0
         empty_index = 0
-        best_fit = 0
-        while i<len(self._memory):
-            if self._memory[i]==".":
-                count+=1
-            else:
-                if count >=
-            
-            i+=1
         return empty_index
         
             
