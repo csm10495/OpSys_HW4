@@ -200,7 +200,7 @@ class cMem:
         self._memory = filter(lambda a: a != ".", self._memory) #removes all "."s
 
         addcount = 0 #number of readded "."s (empty memory)
-        while len(self._memory < 1600): #adds all extra "."s
+        while len(self._memory) < 1600: #adds all extra "."s
             addcount = addcount + 1
             self._memory.append(".")
 
@@ -233,13 +233,25 @@ class cMem:
         return count
 
     #returns an index for cMem where it has num_frames available
-    def getFirstAvailableLocation(self, num_frames):
-        string_rep = ""
-        for i in self._memory:
-            string_rep += i
-
-        return string_rep.find("." * int(num_frames))
-        #returns index on success, else returns -1
+    def getFirstAvailableLocation(self, num_frames):               
+        i = 80
+        inside = False
+        count = 0
+        while(i < 1600):
+            
+            if not inside and self._memory[i] == ".":
+                inside = True
+                count = 1
+            elif inside and self._memory[i] == ".":
+                count += 1       
+            else:
+                if count == num_frames:
+                    return i - count
+                inside = False
+                count = 0             
+            
+            i += 1
+        return -1
         
     def bestFit(self, num_frames):
         
@@ -265,16 +277,17 @@ class cMem:
                     if self._memory[i] == ".":
                         self._memory[i] = process_char
                         frames_left -= 1
-                    if i > self.last_allocated_index:
-                        self.last_allocated_index = i
                     i+=1
             else:
                 print"ERROR: Not enough memory for process."
+                sys.exit(0)
         
         #first algorithm
         elif add_method == "first":
             if self.getNumFreeFrames()>=num_frames:
-                if self.getFirstAvailableLocation(num_frames)>79:
+                #getFirstAvailableLocation will get the 'first' location in the cMem that can store this many frames contiguously
+                #if we have 5 empty spaces in a row but num_frames is 4 getFirst... will return -1
+                if self.getFirstAvailableLocation(num_frames)>79:        
                     i = self.getFirstAvailableLocation(num_frames)
                     end = i + num_frames
                     while i < end:
