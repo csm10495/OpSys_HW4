@@ -208,7 +208,7 @@ class cMem:
         print "Relocated " + str(count) + " processes to create a free memory block of " + str(addcount) + " units (" + str((addcount / 1600) * 100) + "% of total memory)."
         print "Defragmentation completed."
         print ""
-        print "Memory at time" + str(time) + ":"
+        print "Memory at time " + str(time) + ":"
         self.printCMem()
 
         if len(self._memory) > 1600:
