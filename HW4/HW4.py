@@ -329,7 +329,7 @@ class cMem:
                     while i < end:
                         self._memory[i] = process_char
                         i+=1
-                    self.last_allocated_index += num_frames#updates the last allocated index
+                    self.last_allocated_index += num_frames -1#updates the last allocated index
                 else:
                     if self.getFirstAvailableLocation(num_frames)>79:#sees if there is a space big enough between processes
                         i=self.getFirstAvailableLocation(num_frames)#sets i equal to the first empty space in memory big enough to store the process
