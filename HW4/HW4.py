@@ -232,23 +232,14 @@ class cMem:
                 count = count + 1
         return count
 
-        
-    def countSpacesBetweenProcesses(self, num_frames):
-        i=80
-        count = 0
-        empty_index = 0
-        total = 0
-        while i<len(self._memory):
-            if self._memory[i]==".":
-                count+=1
-            else:
-                total = count
-                count = 0
-            if total>=num_frames:
-                empty_index = i-total+1
-                break
-            i+=1
-        return empty_index
+    #returns an index for cMem where it has num_frames available
+    def getFirstAvailableLocation(self, num_frames):
+        string_rep = ""
+        for i in self._memory:
+            string_rep += i
+
+        return string_rep.find("." * int(num_frames))
+        #returns index on success, else returns -1
         
     def bestFit(self, num_frames):
         i=80
@@ -284,8 +275,8 @@ class cMem:
         #first algorithm
         elif add_method == "first":
             if self.getNumFreeFrames()>=num_frames:
-                if self.countSpacesBetweenProcesses(num_frames)>79:
-                    i = self.countSpacesBetweenProcesses(num_frames)
+                if self.getFirstAvailableLocation(num_frames)>79:
+                    i = self.getFirstAvailableLocation(num_frames)
                     end = i + num_frames
                     while i < end:
                         self._memory[i] = process_char
@@ -293,7 +284,7 @@ class cMem:
                             self.last_allocated_index = i
                 else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
                     self.defrag()
-                    i=self.countSpacesBetweenProcesses(num_frames)
+                    i=self.getFirstAvailableLocation(num_frames)
                     end = i+num_frames
                     while i < end:
                         self._memory[i] = process_char
@@ -304,12 +295,12 @@ class cMem:
         #best algorithm
         elif add_method == "best":
             if self.getNumFreeFrames()>=num_frames:
-                if countSpacesBetweenProcess(num_frames)>79:
-                    i = self.countSpacesBetweenProcesses(num_frames)
+                if getFirstAvailableLocation(num_frames)>79:
+                    i = self.getFirstAvailableLocation(num_frames)
                     
                 else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
                     self.defrag()
-                    i=self.countSpacesBetweenProcesses(num_frames)
+                    i=self.getFirstAvailableLocation(num_frames)
                     end = i+num_frames
                     while i < end:
                         self._memory[i] = process_char
@@ -330,15 +321,15 @@ class cMem:
                         i+=1
                     self.last_allocated_index += num_frames#updates the last allocated index
                 else:
-                    if self.countSpacesBetweenProcesses(num_frames)>79:#sees if there is a space big enough between processes
-                        i=self.countSpacesBetweenProcesses(num_frames)#sets i equal to the first empty space in memory big enough to store the process
+                    if self.getFirstAvailableLocation(num_frames)>79:#sees if there is a space big enough between processes
+                        i=self.getFirstAvailableLocation(num_frames)#sets i equal to the first empty space in memory big enough to store the process
                         end = i+num_frames
                         while i < end:#add procees to memory
                             self._memory[i] = process_char
                             i+=1
                     else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
                         self.defrag()
-                        i=self.countSpacesBetweenProcesses(num_frames)
+                        i=self.getFirstAvailableLocation(num_frames)
                         end = i+num_frames
                         while i < end:
                             self._memory[i] = process_char
