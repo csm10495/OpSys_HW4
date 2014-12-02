@@ -281,6 +281,7 @@ class cMem:
                         self._memory[i] = process_char
                         if i > self.last_allocated_index:
                             self.last_allocated_index = i
+                        i+=1
                 else:#if there is enough room but is not contiguous defrag then find the first empty space in memory
                     self.defrag()
                     i=self.getFirstAvailableLocation(num_frames)
