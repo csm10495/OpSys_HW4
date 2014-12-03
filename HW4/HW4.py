@@ -506,7 +506,6 @@ class cMem:
                 else:
                     self.defrag()
                     loc = self.getNextAvailableLocation(i, self.last_allocated_index) 
-                    print "loc after defrag:" + str(loc)
                     if loc >= 0:
                         self.last_allocated_index = loc
                         while num_frames != 0:
@@ -606,12 +605,12 @@ def runSimulation(quiet, input_file, mode):
         #process the processes that have just exited [BEFORE arrivals]
         for proc in exitList:
             proc.popTop()#we no longer need the current start/end time of this process
-            print("Removing..." + proc.getChar() + "...at time: " + str(time))
+            #print("Removing..." + proc.getChar() + "...at time: " + str(time))
             cM.removeProcess(proc.getChar())        
         
         #process the processes that have just arrived
         for proc in entryList:
-            print("Adding..." + proc.getChar() + "...at time: " + str(time))
+            #print("Adding..." + proc.getChar() + "...at time: " + str(time))
             cM.addProcess(mode, proc.getChar(), proc.getNeededFrames())
         
         #question: before or after the time has incremented
