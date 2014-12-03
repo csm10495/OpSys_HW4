@@ -244,13 +244,25 @@ class cMem:
 
     #returns an index for cMem where it has num_frames available (starting at
     #index)
-    def getNextAvailableLocation(self, num_frames, index):
+    def OLDgetNextAvailableLocation(self, num_frames, index):
         rotated_mem = self._memory
-        rotated_mem = rotated_mem[index:] + rotated_mem[:index]   #rotate (shift) the array
-
+        rotated_mem = rotated_mem[index:] + rotated_mem[:index]   #rotate (shift) the array        
+            
         string_rep = ""
+        sub = ""
+        count = 0
+        print "ROTATED MEMORY"
+        
+        #This is wrong, it will split up contiguous memory
+        #as if the defrag never happened
         for i in rotated_mem:
             string_rep += i
+            sub += i
+            count += 1
+            if(count == 80):
+                print sub
+                count = 0
+                sub = ""            
 
         loc = string_rep.find("." * int(num_frames)) 
 
@@ -258,6 +270,62 @@ class cMem:
             return -1
         else:
             return loc + index % len(rotated_mem)
+        
+    def getNextAvailableLocation(self, num_frames, index):
+        end = index
+        inside = False
+        count = 0
+        currentBestIndex = -1
+        currentSmallest = 1600
+        i = index
+        
+        #we start from the given index, and go to the end
+        #this means the given index can be in the middle of a contiguous 
+        #section of "."s, so we need to call this again starting from the beginning
+        #and going to the end
+        while(i < 1600):            
+            #we have not found a new "."
+            if not inside and self._memory[i] == ".":
+                inside = True
+                count += 1
+            #we are inside a string of "."s
+            elif inside and self._memory[i] == ".":
+                count += 1       
+            #we are not/no longer inside, store and reset the important values
+            else:
+                inside = False
+                count = 0             
+            
+            i += 1
+            if count >= num_frames:
+                return i - count   #perfect return            
+            
+        i = 80
+        inside = False
+        count = 0
+        while(i < 1600):
+            
+            #we have not found a new "."
+            if not inside and self._memory[i] == ".":
+                inside = True
+                count += 1
+            #we are inside a string of "."s
+            elif inside and self._memory[i] == ".":
+                count += 1       
+            #we are not/no longer inside, store and reset the important values
+            else:
+                inside = False
+                count = 0                       
+            
+            i += 1     
+            
+            if count >= num_frames:
+                return i - count
+            
+        return -1
+            
+                
+ 
 
     #returns an index for cMem where it has exactly num_frames available
     def getFirstAvailableExactLocation(self, num_frames):            
@@ -299,17 +367,20 @@ class cMem:
             #we are inside a string of "."s
             elif inside and self._memory[i] == ".":
                 count += 1       
-                if count < currentSmallest and count >= num_frames:
-                    currentSmallest = count
-                    currentBestIndex = i - count + 1
             #we are not/no longer inside, store and reset the important values
             else:
                 if count == num_frames:
                     return i - count   #perfect return
                 inside = False
-                count = 0             
+                count = 0                    
             
             i += 1
+            
+            #if we have found a better fit
+            if count < currentSmallest and count >= num_frames:
+                currentSmallest = count
+                currentBestIndex = i - count
+                
         return currentBestIndex  #nonperfect return
 
     #returns an index for cMem where it has num_frames available (worst)
@@ -329,13 +400,14 @@ class cMem:
             #we are inside a string of "."s
             elif inside and self._memory[i] == ".":
                 count += 1       
-                if count > currentLargest and count >= num_frames:
-                    currentLargest = count
-                    currentWorstIndex = i - count + 1
             #we are not/no longer inside, store and reset the important values
             else:
                 inside = False
-                count = 0             
+                count = 0      
+            
+            if count > currentLargest and count >= num_frames:
+                currentLargest = count
+                currentWorstIndex = i - count + 1            
             
             i += 1
         return currentWorstIndex  #nonperfect return
@@ -384,10 +456,12 @@ class cMem:
                 else:#if there is enough room but is not contiguous defrag then find the first empty
                      #space in memory
                     self.defrag()
+                    
                     i = self.getFirstAvailableLocation(num_frames)
                     end = i + num_frames
                     while i < end:
                         self._memory[i] = process_char
+                        i += 1
                     self.last_allocated_index = end - 1
             else:
                 print"ERROR: Not enough memory for process."
@@ -411,6 +485,9 @@ class cMem:
                             self._memory[loc] = process_char
                             num_frames = num_frames - 1
                             loc = loc + 1
+                    else:
+                        print "ERROR: SPACE NOT FOUND AFTER DEFRAG. THIS SHOULD NOT HAPPEN"
+                        sys.exit(0)
             else:
                 print "ERROR: Not enough memory for process."
                 sys.exit(0)
@@ -429,12 +506,15 @@ class cMem:
                 else:
                     self.defrag()
                     loc = self.getNextAvailableLocation(i, self.last_allocated_index) 
+                    print "loc after defrag:" + str(loc)
                     if loc >= 0:
                         self.last_allocated_index = loc
                         while num_frames != 0:
                             self._memory[loc] = process_char
                             num_frames = num_frames - 1
                             loc = loc + 1
+                    else:
+                        print "FAILURE AFTER DEFRAG: THIS SHOULDN'T HAPPEN"
             else:
                 print "ERROR: Not enough memory for process."
                 sys.exit(0)
