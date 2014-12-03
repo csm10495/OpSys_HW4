@@ -246,12 +246,12 @@ class cMem:
     #index)
     def OLDgetNextAvailableLocation(self, num_frames, index):
         rotated_mem = self._memory
-        rotated_mem = rotated_mem[index:] + rotated_mem[:index]   #rotate (shift) the array        
+        rotated_mem = rotated_mem[index:] + rotated_mem[:index]   #rotate (shift) the array
             
         string_rep = ""
         sub = ""
         count = 0
-        print "ROTATED MEMORY"
+        #print "ROTATED MEMORY"
         
         #This is wrong, it will split up contiguous memory
         #as if the defrag never happened
@@ -260,7 +260,7 @@ class cMem:
             sub += i
             count += 1
             if(count == 80):
-                print sub
+                #print sub
                 count = 0
                 sub = ""            
 
@@ -280,8 +280,9 @@ class cMem:
         i = index
         
         #we start from the given index, and go to the end
-        #this means the given index can be in the middle of a contiguous 
-        #section of "."s, so we need to call this again starting from the beginning
+        #this means the given index can be in the middle of a contiguous
+        #section of "."s, so we need to call this again starting from the
+        #beginning
         #and going to the end
         while(i < 1600):            
             #we have not found a new "."
@@ -298,7 +299,7 @@ class cMem:
             
             i += 1
             if count >= num_frames:
-                return i - count   #perfect return            
+                return i - count   #perfect return
             
         i = 80
         inside = False
@@ -605,13 +606,17 @@ def runSimulation(quiet, input_file, mode):
         #process the processes that have just exited [BEFORE arrivals]
         for proc in exitList:
             proc.popTop()#we no longer need the current start/end time of this process
-            #print("Removing..." + proc.getChar() + "...at time: " + str(time))
+            print("Removing..." + proc.getChar() + "...at time: " + str(time))
             cM.removeProcess(proc.getChar())        
-        
+            if quiet:
+                cM.printCMem()
+
         #process the processes that have just arrived
         for proc in entryList:
-            #print("Adding..." + proc.getChar() + "...at time: " + str(time))
+            print("Adding..." + proc.getChar() + "...at time: " + str(time))
             cM.addProcess(mode, proc.getChar(), proc.getNeededFrames())
+            if quiet:
+                cM.printCMem()
         
         #question: before or after the time has incremented
         #add the processes that just exited to the waiting list
